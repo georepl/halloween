@@ -4,7 +4,7 @@ The configurable prototype of a process simulating a program in a production env
 
 ## Installation
 
-Download from http://github.com/georepl/halloween/spook.
+Download from http://github.com/georepl/halloween/tree/master/spook.
 
 ## Usage
 

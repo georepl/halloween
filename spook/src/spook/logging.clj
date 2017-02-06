@@ -5,53 +5,45 @@
 
 
 ;; getTime returns the ms since epoch (1-1-1970) which was a Thursday (day 4).
-;; are the number of ms a day has
+;; 86400000 are the number of ms a day has
 (defn day-of-week []
   (let [dayssince (int (/ (.getTime (new java.util.Date)) 86400000))]
     (mod (+ 4 dayssince) 7)))
 
+
 (defn init [options]
   (let [state (:log-params options)
         dayofweek (day-of-week)]
-    (when (spec/valid? ::types/logstate state)
-      (let [new-log-state (assoc state :logfile (format "%s%d" (:logfile state) (day-of-week)))]
-        (dissoc  (assoc options :logs new-log-state) :log-params)))))
+    (if (spec/valid? ::types/logstate state)
+      (let [s (format "%s%d" (:logfile state) (day-of-week))
+            new-log-state (assoc state :logfile s)]
+        (dissoc  (assoc options :logs new-log-state) :log-params))
+      nil)))
+
+
+(defn output [s qual]
+  (let [state (state/current-state)
+        pid 12345 ;; NYI, TODO: read http://www.rgagnon.com/javadetails/java-0651.html when Java 9 is out!!!
+        logfile (:logfile (:logs state))
+        progname (:progname (:logs state))
+        timestamp (.format (java.text.SimpleDateFormat. "MM-dd-yyyy  hh:mm:ss") (new java.util.Date))
+        cont (format "%s PID %s:  %s  %s   %s\n"
+                                                 progname
+                                                 pid
+                                                 timestamp
+                                                 qual
+                                                 s)]
+      (let [file (java.io.File. logfile)]
+        (if (.exists file)
+          (spit file cont :append true)
+          (spit file cont)))))
 
 
 (defn trace [s]
-  (let [state (state/current-state)
-        pid 12345 ;; read http://www.rgagnon.com/javadetails/java-0651.html when Java 9 is out
-        logfile (:logfile (:logs state))
-        progname (:progname (:logs state))
-        timestamp (.format (java.text.SimpleDateFormat. "MM-dd-yyyy  hh:mm:ss") (new java.util.Date))]
-    (spit logfile (format "%s PID %s:  %s  TRACE  %s\n"
-                                           progname
-                                           pid
-                                           timestamp
-                                           s) :append true)))
-
+  (output s "TRACE"))
 
 (defn info [s]
-  (let [state (state/current-state)
-        pid 12345 ;; read http://www.rgagnon.com/javadetails/java-0651.html when Java 9 is out
-        logfile (:logfile (:logs state))
-        progname (:progname (:logs state))
-        timestamp (.format (java.text.SimpleDateFormat. "MM-dd-yyyy  hh:mm:ss") (new java.util.Date))]
-    (spit logfile (format "%s PID %s:  %s  INFO   %s\n"
-                                           progname
-                                           pid
-                                           timestamp
-                                           s) :append true)))
-
+  (output s "INFO"))
 
 (defn error [s]
-  (let [state (state/current-state)
-        pid 12345 ;; read http://www.rgagnon.com/javadetails/java-0651.html when Java 9 is out
-        logfile (:logfile (:logs state))
-        progname (:progname (:logs state))
-        timestamp (.format (java.text.SimpleDateFormat. "MM-dd-yyyy  hh:mm:ss") (new java.util.Date))]
-    (spit logfile (format "%s PID %s:  %s  ERROR  %s\n"
-                                           progname
-                                           pid
-                                           timestamp
-                                           s) :append true)))
+  (output s "ERROR"))

@@ -4,7 +4,7 @@ A program generator creating an environment in which several spook processes run
 
 ## Installation
 
-Download from http://github.com/georepl/halloween/spookparty.
+Download from http://github.com/georepl/halloween/tree/master/spookparty.
 
 ## Usage
 
